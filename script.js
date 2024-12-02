@@ -32,7 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Clean and normalize barcodes (strip any extra spaces or non-numeric characters)
     function cleanBarcode(barcode) {
-        return barcode.trim().replace(/\D/g, ''); // removes any non-numeric characters
+        if (typeof barcode === 'string') {
+            return barcode.trim().replace(/\D/g, ''); // removes any non-numeric characters
+        }
+        return ''; // Return an empty string if barcode is not a string
     }
 
     // Update Total Price
