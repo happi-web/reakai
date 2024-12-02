@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (product) {
                     addToCart({
                         barcode: decodedText,
-                        name: product['Product Name'],
+                        name: product['Barcode'],
                         quantity: 1,
                         price: parseFloat(product['Unit Price']),
                     });
