@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Inventory System</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include Html5Qrcode for Barcode Scanning -->
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>POS Inventory System</h1>
+
+    <!-- Mode Selector -->
+    <div id="modeSelector">
+        <button id="scanMode">Scan Barcode</button>
+        <button id="manualMode">Enter Manually</button>
+    </div>
+
+    <!-- Scanner Section -->
+    <div id="scannerSection" class="hidden">
+        <div id="scanner"></div>
+        <p id="scanResult">No barcode scanned yet</p>
+    </div>
+
+    <!-- Manual Entry Section -->
+    <form id="inventoryForm" class="hidden">
+        <input type="text" id="barcode" placeholder="Barcode (optional)">
+        <input type="text" id="productName" placeholder="Product Name" required>
+        <input type="number" id="quantity" placeholder="Quantity" required>
+        <input type="number" id="price" placeholder="Price (per unit)" required>
+        <button type="submit">Add to Inventory</button>
+    </form>
+
+    <!-- Inventory List -->
+    <div id="inventoryList">
+        <h2>Current Cart</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Barcode</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="cartItems"></tbody>
+        </table>
+        <h3>Total Price: $<span id="totalPrice">0.00</span></h3>
+
+        <!-- Add Seller's Money and Calculate Change -->
+        <div>
+            <label for="receivedMoney">Enter Seller's Money: $</label>
+            <input type="number" id="receivedMoney" placeholder="Amount received" required>
+            <button id="calculateChange">Calculate Change</button>
+        </div>
+        <h3>Change: $<span id="changeAmount">0.00</span></h3>
+
+        <button id="checkout">Checkout</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
