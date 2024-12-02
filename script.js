@@ -12,31 +12,40 @@ document.addEventListener("DOMContentLoaded", () => {
     let scanner;
     let cart = [];
     let totalPrice = 0;
-    let inventoryData = [];
+    let inventoryData = []; // This will hold the inventory data from the Excel file
 
-    // Load Inventory Data from an Excel file
+    // Load Inventory Data from an Excel file (inventory.xlsx)
     function loadInventoryData() {
-        const fileUrl = "reakai.xlsx"; // Path to the inventory file
+        const fileUrl = 'reakai.xlsx'; // Path to the inventory file
+        
         fetch(fileUrl)
-            .then((response) => response.arrayBuffer())
-            .then((data) => {
-                const workbook = XLSX.read(data, { type: "array" });
+            .then(response => response.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, { type: 'array' });
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
-                inventoryData = XLSX.utils.sheet_to_json(sheet);
+                const sheetData = XLSX.utils.sheet_to_json(sheet);
+
+                inventoryData = sheetData.map(item => ({
+                    Barcode: cleanBarcode(item.Barcode.toString()),
+                    ProductName: item["Product Name"],
+                    UnitPrice: parseFloat(item["Unit Price"]),
+                }));
+
+                console.log("Inventory Data Loaded:", inventoryData); // Debugging
             })
-            .catch((error) => console.error("Error loading inventory file:", error));
+            .catch(error => console.error("Error loading inventory file:", error));
     }
 
     // Clean and normalize barcodes
     function cleanBarcode(barcode) {
-        return typeof barcode === "string" ? barcode.trim().replace(/\D/g, "") : "";
+        return typeof barcode === 'string' ? barcode.trim() : String(barcode).trim();
     }
 
     // Update Total Price
     const updateTotalPrice = () => {
         totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-        totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+        totalPriceElement.textContent = totalPrice.toFixed(2);
     };
 
     // Render Cart
@@ -50,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.quantity}</td>
                 <td>$${item.price.toFixed(2)}</td>
                 <td>$${(item.quantity * item.price).toFixed(2)}</td>
-                <td>
+                <td class="actions">
                     <button onclick="removeFromCart(${index})">Remove</button>
                 </td>
             `;
@@ -71,48 +80,37 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCart();
     };
 
-    // QR Code Scanner Integration
+    // Switch to Scan Mode
     const scanModeButton = document.getElementById("scanMode");
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 10, qrbox: 250 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 800 });
         }
         scanner.render(
             (decodedText) => {
                 scanResult.innerText = `Scanned: ${decodedText}`;
                 const cleanedBarcode = cleanBarcode(decodedText);
                 const product = inventoryData.find(
-                    (p) => cleanBarcode(p.Barcode) === cleanedBarcode
+                    (p) => p.Barcode === cleanedBarcode
                 );
                 if (product) {
                     addToCart({
                         barcode: cleanedBarcode,
-                        name: product["Product Name"],
+                        name: product.ProductName,
                         quantity: 1,
-                        price: parseFloat(product["Unit Price"]),
+                        price: product.UnitPrice,
                     });
                 } else {
                     alert("Product not found in inventory.");
                 }
+                scanner.clear();
             },
             (error) => {
                 scanResult.innerText = `Error: ${error}`;
             }
         );
-    });
-
-    // Switch to Manual Mode
-    const manualModeButton = document.getElementById("manualMode");
-    manualModeButton.addEventListener("click", () => {
-        inventoryForm.classList.remove("hidden");
-        scannerSection.classList.add("hidden");
-        if (scanner) {
-            scanner.clear();
-            scanner = null;
-        }
-        scanResult.innerText = "No barcode scanned yet";
     });
 
     // Manual Form Submission
@@ -136,34 +134,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const change = receivedMoney - totalPrice;
-        changeAmountElement.textContent = `$${change.toFixed(2)}`;
+        changeAmountElement.textContent = change.toFixed(2);
     });
 
-    // Checkout and Save to Excel
+    // Checkout
     checkoutButton.addEventListener("click", () => {
-        alert(
-            `Transaction Complete. Total Price: $${totalPrice.toFixed(
-                2
-            )}. Change: $${changeAmountElement.textContent}`
-        );
-        const newCartData = cart.map((item) => ({
-            Barcode: item.barcode,
-            ProductName: item.name,
-            Quantity: item.quantity,
-            Price: item.price,
-        }));
-
-        const newWorkbook = XLSX.utils.book_new();
-        const newWorksheet = XLSX.utils.json_to_sheet(newCartData);
-        XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Sales");
-        XLSX.writeFile(newWorkbook, "sales_receipt.xlsx");
-
+        alert(`Transaction Complete. Total Price: $${totalPrice.toFixed(2)}. Change: $${changeAmountElement.textContent}`);
         cart = [];
         renderCart();
         changeAmountElement.textContent = "0.00";
         receivedMoneyInput.value = "";
     });
 
-    // Load inventory data on page load
+    // Load inventory data when the page loads
     loadInventoryData();
 });
