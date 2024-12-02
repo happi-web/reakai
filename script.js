@@ -59,13 +59,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.barcode || "N/A"}</td>
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
-                <td>$${item.price.toFixed(2)}</td>
-                <td>$${(item.quantity * item.price).toFixed(2)}</td>
+                <td>K${item.price.toFixed(2)}</td>
+                <td>K${(item.quantity * item.price).toFixed(2)}</td>
                 <td class="actions">
                     <button onclick="removeFromCart(${index})">Remove</button>
                 </td>
             `;
             cartItems.appendChild(row);
+            cartItems.setAttribute("style", "font-size: 12px;color:indigo;font-weight: bold;font-family:sans-serif; padding:8px; position:relative");
         });
         updateTotalPrice();
     }
@@ -117,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 800 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 500 });
         }
         scanner.render(
             (decodedText) => {

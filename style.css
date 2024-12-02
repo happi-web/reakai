@@ -1,33 +1,173 @@
-*,
-::before,
-::after
-{
+/* General Reset */
+*, ::before, ::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-body
-{
+/* Prevent horizontal scrolling */
+body {
     background-color: darksalmon;
+    overflow-x: hidden; /* Disables horizontal scrolling */
 }
-.container
-{
+
+/* Container Styling */
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-width:60%;
+    max-width: 60%;
     background-color: blanchedalmond;
     margin: 40px auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
-h1
-{
+
+/* Header Styling */
+h1 {
     margin: 20px;
-    padding: 10px;
-    font-size:36px;
+    padding: 10px 15px;
+    font-size: 36px;
     text-transform: uppercase;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    color: blue;
     font-weight: bolder;
+    border-radius: 20px;
+    background-color: rgb(0, 1, 37);
+    color: rgb(224, 221, 255);
+    text-align: center;
+}
+
+/* Button Styling */
+button {
+    background-color: #000e5a;
+    color: rgb(224, 221, 255);
+    padding: 10px;
+    margin: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #001c8e;
+}
+
+/* Inventory List Section */
+#inventoryList {
+    width: 100%; /* Ensure it doesn't exceed container width */
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    overflow-x: hidden; /* Avoid horizontal scrolling */
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    text-align: left;
+    font-size: 16px;
+    padding: 10px;
+    white-space: nowrap;
+    color: rgb(233, 233, 233);
+    font-weight: bold;
+    background-color: rgb(87, 26, 255);
+    border-radius: 10px;
+    border: 2px solid rgb(23, 0, 151);
+}
+
+tbody td {
+    text-align: center;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    word-break: break-word;
+}
+
+/* Sub-Headers (e.g., Total Price, Change) */
+h2 {
+    margin: 5px 5px;
+    padding: 5px;
+    font-size: 26px;
+    text-transform: uppercase;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: bolder;
+    color: rgb(149, 140, 252);
+    text-align: left;
+}
+
+h3 {
+    font-size: 28px;
+    color: #7e6b00;
+    font-weight: bold;
+    padding: 20px;
+}
+
+/* Label Styling */
+label {
+    font-size: 18px;
+    color: #010053;
+    font-weight: bold;
+    padding: 20px;
+}
+
+
+/* Responsive Styles for Small Screens */
+@media (max-width: 720px) {
+    .container {
+        max-width: 95%;
+        margin: 10px;
+        padding: 10px;
+    }
+
+    #inventoryList {
+        padding: 5px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    thead th, tbody td {
+        font-size: 10px;
+        padding: 5px;
+    }
+
+    h1 {
+        font-size: 26px;
+        margin: 10px;
+        text-align: center;
+    }
+
+    h2, h3 {
+        font-size: 16px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    label {
+        font-size: 14px;
+        text-align: center;
+    }
+
+    input {
+        width: 100%;
+        font-size: 14px;
+        padding: 5px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px;
+    }
 }
