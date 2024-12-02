@@ -12,36 +12,31 @@ document.addEventListener("DOMContentLoaded", () => {
     let scanner;
     let cart = [];
     let totalPrice = 0;
-    let inventoryData = []; // This will hold the inventory data from the Excel file
+    let inventoryData = [];
 
-    // Load Inventory Data from an Excel file (inventory.xlsx)
+    // Load Inventory Data from an Excel file
     function loadInventoryData() {
-        const fileUrl = 'reakai.xlsx'; // Path to the inventory file (replace with actual path)
-        
+        const fileUrl = "reakai.xlsx"; // Path to the inventory file
         fetch(fileUrl)
-            .then(response => response.arrayBuffer())
-            .then(data => {
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0]; // Assumes inventory data is in the first sheet
+            .then((response) => response.arrayBuffer())
+            .then((data) => {
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
-                const sheetData = XLSX.utils.sheet_to_json(sheet);
-                inventoryData = sheetData; // Store the inventory data
+                inventoryData = XLSX.utils.sheet_to_json(sheet);
             })
-            .catch(error => console.error("Error loading inventory file:", error));
+            .catch((error) => console.error("Error loading inventory file:", error));
     }
 
-    // Clean and normalize barcodes (strip any extra spaces or non-numeric characters)
+    // Clean and normalize barcodes
     function cleanBarcode(barcode) {
-        if (typeof barcode === 'string') {
-            return barcode.trim().replace(/\D/g, ''); // removes any non-numeric characters
-        }
-        return ''; // Return an empty string if barcode is not a string
+        return typeof barcode === "string" ? barcode.trim().replace(/\D/g, "") : "";
     }
 
     // Update Total Price
     const updateTotalPrice = () => {
         totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-        totalPriceElement.textContent = totalPrice.toFixed(2);
+        totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
     };
 
     // Render Cart
@@ -55,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.quantity}</td>
                 <td>$${item.price.toFixed(2)}</td>
                 <td>$${(item.quantity * item.price).toFixed(2)}</td>
-                <td class="actions">
+                <td>
                     <button onclick="removeFromCart(${index})">Remove</button>
                 </td>
             `;
@@ -76,32 +71,31 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCart();
     };
 
-    // Switch to Scan Mode (QR Code Scanner)
+    // QR Code Scanner Integration
     const scanModeButton = document.getElementById("scanMode");
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 800 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 10, qrbox: 250 });
         }
         scanner.render(
             (decodedText) => {
                 scanResult.innerText = `Scanned: ${decodedText}`;
-                // Clean the scanned barcode
                 const cleanedBarcode = cleanBarcode(decodedText);
-                // Fetch product details from the loaded inventory based on the cleaned barcode
-                const product = inventoryData.find(p => cleanBarcode(p.Barcode) === cleanedBarcode);
+                const product = inventoryData.find(
+                    (p) => cleanBarcode(p.Barcode) === cleanedBarcode
+                );
                 if (product) {
                     addToCart({
                         barcode: cleanedBarcode,
-                        name: product['Product Name'],
+                        name: product["Product Name"],
                         quantity: 1,
-                        price: parseFloat(product['Unit Price']),
+                        price: parseFloat(product["Unit Price"]),
                     });
                 } else {
                     alert("Product not found in inventory.");
                 }
-                scanner.clear();
             },
             (error) => {
                 scanResult.innerText = `Error: ${error}`;
@@ -121,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scanResult.innerText = "No barcode scanned yet";
     });
 
-    // Manual Form Submission (Add Item to Cart)
+    // Manual Form Submission
     inventoryForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const item = {
@@ -142,35 +136,34 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const change = receivedMoney - totalPrice;
-        changeAmountElement.textContent = change.toFixed(2);
+        changeAmountElement.textContent = `$${change.toFixed(2)}`;
     });
 
-    // Checkout and Save Updated Cart to Excel
+    // Checkout and Save to Excel
     checkoutButton.addEventListener("click", () => {
-        alert(`Transaction Complete. Total Price: $${totalPrice.toFixed(2)}. Change: $${changeAmountElement.textContent}`);
-        
-        // Prepare cart data to be saved to a new Excel file
-        const newCartData = cart.map(item => ({
+        alert(
+            `Transaction Complete. Total Price: $${totalPrice.toFixed(
+                2
+            )}. Change: $${changeAmountElement.textContent}`
+        );
+        const newCartData = cart.map((item) => ({
             Barcode: item.barcode,
             ProductName: item.name,
             Quantity: item.quantity,
-            Price: item.price
+            Price: item.price,
         }));
 
-        // Create a new workbook for the cart data
         const newWorkbook = XLSX.utils.book_new();
         const newWorksheet = XLSX.utils.json_to_sheet(newCartData);
         XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Sales");
-
-        // Save the new Excel file
         XLSX.writeFile(newWorkbook, "sales_receipt.xlsx");
 
-        cart = []; // Clear cart after checkout
+        cart = [];
         renderCart();
         changeAmountElement.textContent = "0.00";
         receivedMoneyInput.value = "";
     });
 
-    // Automatically load inventory data when the page is loaded
+    // Load inventory data on page load
     loadInventoryData();
 });
