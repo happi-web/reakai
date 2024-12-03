@@ -18,7 +18,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-width: 60%;
+    max-width: 95%;
     background-color: blanchedalmond;
     margin: 40px auto;
     padding: 20px;
@@ -56,6 +56,21 @@ button {
 button:hover {
     background-color: #001c8e;
 }
+form
+{
+    text-align: center;
+}
+input
+{
+    padding: 10px;
+    margin: 10px;
+    border: 2px solid rgb(94, 137, 255);
+    font-size: 24px;
+    color: #000e5a;
+    width: 40%;
+    border-radius: 15px;
+    font-weight: bold;
+}
 
 /* Inventory List Section */
 #inventoryList {
@@ -64,7 +79,7 @@ button:hover {
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+    margin-top: 20px 5px;
     overflow-x: hidden; /* Avoid horizontal scrolling */
 }
 
@@ -76,14 +91,12 @@ table {
 
 thead th {
     text-align: left;
-    font-size: 16px;
+    font-size: 18px;
     padding: 10px;
     white-space: nowrap;
     color: rgb(233, 233, 233);
     font-weight: bold;
     background-color: rgb(87, 26, 255);
-    border-radius: 10px;
-    border: 2px solid rgb(23, 0, 151);
 }
 
 tbody td {
