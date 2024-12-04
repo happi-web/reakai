@@ -121,13 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error updating inventory:", error.message);
         }
     }
-
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
     
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 650 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 550 });
     
             scanner.render(
                 async (decodedText) => {
@@ -150,32 +149,39 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Add scanned product to cart with quantity adjustment
     async function addScannedProductToCart(product) {
+        const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
+    
+        if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
+            alert("Please enter a valid quantity.");
+            return;
+        }
+    
+        if (enteredQuantity > product.Quantity) {
+            alert(`Not enough stock! Available quantity: ${product.Quantity}`);
+            return;
+        }
+    
         const existingCartItem = cart.find(item => item.barcode === product.Barcode);
     
         if (existingCartItem) {
             // Update quantity if the product already exists in the cart
-            if (existingCartItem.quantity + 1 > product.Quantity) {
+            if (existingCartItem.quantity + enteredQuantity > product.Quantity) {
                 alert(`Not enough stock! Available quantity: ${product.Quantity}`);
                 return;
             }
-            existingCartItem.quantity += 1;
+            existingCartItem.quantity += enteredQuantity;
         } else {
             // Add a new item to the cart
-            if (product.Quantity <= 0) {
-                alert(`No stock available for ${product.ProductName}.`);
-                return;
-            }
-    
             cart.push({
                 barcode: product.Barcode,
                 name: product.ProductName,
-                quantity: 1,
+                quantity: enteredQuantity,
                 price: product.UnitPrice,
             });
         }
     
         // Update stock in the inventory
-        product.Quantity -= 1;
+        product.Quantity -= enteredQuantity;
         await updateInventoryOnServer(product);
     
         if (product.Quantity <= 5) {
@@ -183,8 +189,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         renderCart();
-    } 
-
+    }
+    
     // Handle inventory form submission
     inventoryForm.addEventListener("submit", async (e) => {
         e.preventDefault();
