@@ -544,3 +544,5 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize
     loadInventoryData();
 });
+
+
