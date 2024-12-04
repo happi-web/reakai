@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function addToCartWithQuantity(product) {
         const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
+        enteredQuantity.setAttribute("font-size:18px; color: blue");
 
         if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
             alert("Please enter a valid quantity.");
