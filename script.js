@@ -122,29 +122,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Handle scan mode
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
     
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 650 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 800 });
+            
+            // Define a persistent scanner session
+            scanner.render(async (decodedText) => {
+                scanResult.textContent = `Scanned: ${decodedText}`;
+                const cleanedBarcode = cleanBarcode(decodedText);
+                const product = inventoryData.find(item => item.Barcode === cleanedBarcode);
     
-            scanner.render(
-                async (decodedText) => {
-                    scanResult.textContent = `Scanned: ${decodedText}`;
-                    const cleanedBarcode = cleanBarcode(decodedText);
-                    const product = inventoryData.find(item => item.Barcode === cleanedBarcode);
-    
-                    if (product) {
-                        await addScannedProductToCart(product); // Add scanned product to the cart
-                    } else {
-                        alert("Product not found in inventory.");
-                    }
-                },
-                (error) => {
-                    console.warn(`Scanning failed: ${error}`);
+                if (product) {
+                    await addScannedProductToCart(product); // Add scanned product to cart
+                } else {
+                    alert("Product not found in inventory.");
                 }
-            );
+            });
         }
     });
     
@@ -158,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert(`Not enough stock! Available quantity: ${product.Quantity}`);
                 return;
             }
+    
             existingCartItem.quantity += 1;
         } else {
             // Add a new item to the cart
@@ -183,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         renderCart();
-    } 
+    }    
 
     // Handle inventory form submission
     inventoryForm.addEventListener("submit", async (e) => {
