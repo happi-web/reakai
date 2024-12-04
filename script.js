@@ -99,6 +99,45 @@ document.addEventListener("DOMContentLoaded", () => {
         totalPriceElement.textContent = `K${totalPrice.toFixed(2)}`;
     }
 
+// Clean and normalize barcodes for consistent comparison
+function cleanBarcode(barcode) {
+    return String(barcode).trim().replace(/\s+/g, "").toLowerCase();
+}
+
+// Scan mode logic
+scanModeButton.addEventListener("click", () => {
+    scannerSection.classList.remove("hidden");
+    inventoryForm.classList.add("hidden");
+
+    if (!scanner) {
+        scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 500 });
+    }
+
+    scanner.render(
+        async (decodedText) => {
+            const cleanedBarcode = cleanBarcode(decodedText);
+            console.log(`Scanned Barcode: ${cleanedBarcode}`); // Debug log
+
+            const product = inventoryData.find((p) => cleanBarcode(p.Barcode) === cleanedBarcode);
+
+            if (product) {
+                console.log(`Product found: ${product.ProductName}`); // Debug log
+                await addToCartWithQuantity(product);
+            } else {
+                console.error(`Product not found for barcode: ${cleanedBarcode}`); // Debug log
+                alert("Product not found in inventory. Please check the barcode.");
+            }
+
+            scanner.clear();
+        },
+        (error) => {
+            console.error("Scan error:", error);
+        }
+    );
+});
+
+    
+
     // Update inventory on the server
     async function updateInventoryOnServer(product) {
         try {
@@ -158,28 +197,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Scan mode logic
-    scanModeButton.addEventListener("click", () => {
-        scannerSection.classList.remove("hidden");
-        inventoryForm.classList.add("hidden");
-        if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 500 });
-        }
-        scanner.render(
-            async (decodedText) => {
-                const cleanedBarcode = decodedText.trim();
-                const product = inventoryData.find((p) => p.Barcode === cleanedBarcode);
-                if (product) {
-                    await addToCartWithQuantity(product);
-                } else {
-                    alert("Product not found in inventory.");
-                }
-                scanner.clear();
-            },
-            (error) => {
-                console.error("Scan error:", error);
-            }
-        );
-    });
+    // scanModeButton.addEventListener("click", () => {
+    //     scannerSection.classList.remove("hidden");
+    //     inventoryForm.classList.add("hidden");
+    //     if (!scanner) {
+    //         scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 500 });
+    //     }
+    //     scanner.render(
+    //         async (decodedText) => {
+    //             const cleanedBarcode = decodedText.trim();
+    //             const product = inventoryData.find((p) => p.Barcode === cleanedBarcode);
+    //             if (product) {
+    //                 await addToCartWithQuantity(product);
+    //             } else {
+    //                 alert("Product not found in inventory.");
+    //             }
+    //             scanner.clear();
+    //         },
+    //         (error) => {
+    //             console.error("Scan error:", error);
+    //         }
+    //     );
+    // });
 
     loadInventoryData();
 });
