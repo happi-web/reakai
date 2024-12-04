@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    
+
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
@@ -189,48 +189,48 @@ document.addEventListener("DOMContentLoaded", () => {
     
     
     // Add scanned product to cart with quantity adjustment
-    async function addScannedProductToCart(product) {
-        const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
+    // async function addScannedProductToCart(product) {
+    //     const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
     
-        if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
-            alert("Please enter a valid quantity.");
-            return;
-        }
+    //     if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
+    //         alert("Please enter a valid quantity.");
+    //         return;
+    //     }
     
-        if (enteredQuantity > product.Quantity) {
-            alert(`Not enough stock! Available quantity: ${product.Quantity}`);
-            return;
-        }
+    //     if (enteredQuantity > product.Quantity) {
+    //         alert(`Not enough stock! Available quantity: ${product.Quantity}`);
+    //         return;
+    //     }
     
-        const existingCartItem = cart.find(item => item.barcode === product.Barcode);
+    //     const existingCartItem = cart.find(item => item.barcode === product.Barcode);
     
-        if (existingCartItem) {
-            // Update quantity if the product already exists in the cart
-            if (existingCartItem.quantity + enteredQuantity > product.Quantity) {
-                alert(`Not enough stock! Available quantity: ${product.Quantity}`);
-                return;
-            }
-            existingCartItem.quantity += enteredQuantity;
-        } else {
-            // Add a new item to the cart
-            cart.push({
-                barcode: product.Barcode,
-                name: product.ProductName,
-                quantity: enteredQuantity,
-                price: product.UnitPrice,
-            });
-        }
+    //     if (existingCartItem) {
+    //         // Update quantity if the product already exists in the cart
+    //         if (existingCartItem.quantity + enteredQuantity > product.Quantity) {
+    //             alert(`Not enough stock! Available quantity: ${product.Quantity}`);
+    //             return;
+    //         }
+    //         existingCartItem.quantity += enteredQuantity;
+    //     } else {
+    //         // Add a new item to the cart
+    //         cart.push({
+    //             barcode: product.Barcode,
+    //             name: product.ProductName,
+    //             quantity: enteredQuantity,
+    //             price: product.UnitPrice,
+    //         });
+    //     }
     
-        // Update stock in the inventory
-        product.Quantity -= enteredQuantity;
-        await updateInventoryOnServer(product);
+    //     // Update stock in the inventory
+    //     product.Quantity -= enteredQuantity;
+    //     await updateInventoryOnServer(product);
     
-        if (product.Quantity <= 5) {
-            alert(`Low stock alert for ${product.ProductName}! Remaining quantity: ${product.Quantity}`);
-        }
+    //     if (product.Quantity <= 5) {
+    //         alert(`Low stock alert for ${product.ProductName}! Remaining quantity: ${product.Quantity}`);
+    //     }
     
-        renderCart();
-    }
+    //     renderCart();
+    // }
     
     // Handle inventory form submission
     inventoryForm.addEventListener("submit", async (e) => {
