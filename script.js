@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inventoryForm.classList.add("hidden");
     
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 650 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 20, qrbox: { width: 200, height: 200 }});
     
             scanner.render(
                 async (decodedText) => {
