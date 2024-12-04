@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Render cart
     function renderCart() {
-        cartItems.innerHTML = "";
+        cartItems.innerHTML = ""; // Clears the cart items safely
         cart.forEach((item, index) => {
             const row = document.createElement("tr");
             row.innerHTML = `
@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         updateTotalPrice();
     }
+    
 
     // Remove item from cart
     window.removeFromCart = (index) => {
