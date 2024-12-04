@@ -134,7 +134,11 @@ label {
     padding: 20px;
 }
 
-
+.version{
+    padding: 6px;
+    margin: 5px;
+    color: gray;
+}
 /* Responsive Styles for Small Screens */
 @media (max-width: 720px) {
     .container {
