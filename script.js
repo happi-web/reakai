@@ -121,13 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error updating inventory:", error.message);
         }
     }
-
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
     
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 10, qrbox: 250 });
+            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 650 });
     
             scanner.render(
                 async (decodedText) => {
@@ -136,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const product = inventoryData.find(item => item.Barcode === cleanedBarcode);
     
                     if (product) {
-                        await addToCartWithQuantity(product); // Prompt for quantity after scanning
+                        await addScannedProductToCart(product); // Add scanned product to the cart
                     } else {
                         alert("Product not found in inventory.");
                     }
@@ -148,8 +147,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-    // Add product to cart with quantity input
-    async function addToCartWithQuantity(product) {
+    // Add scanned product to cart with quantity adjustment
+    async function addScannedProductToCart(product) {
         const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
     
         if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
@@ -192,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCart();
     }
     
-
     // Handle inventory form submission
     inventoryForm.addEventListener("submit", async (e) => {
         e.preventDefault();
