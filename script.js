@@ -17,52 +17,40 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalPrice = 0;
     let inventoryData = [];
 
+    // Load inventory data
     async function loadInventoryData() {
         try {
             const response = await fetch(`${webAppUrl}?action=getInventory`);
             if (!response.ok) throw new Error(`Failed to fetch inventory data. Status: ${response.status}`);
 
             const result = await response.json();
-            if (Array.isArray(result)) {
-                inventoryData = result.map(item => ({
-                    Barcode: cleanBarcode(item.Barcode),
-                    ProductName: item["Product Name"],
-                    UnitPrice: parseFloat(item["Unit Price"]),
-                    Quantity: parseInt(item.Quantity, 10),
-                    Category: item.Category,
-                    Supplier: item.Supplier,
-                    ExpiringDate: item["Expiring Date"],
-                    CostPrice: parseFloat(item["Cost Price"] || "0"),
-                }));
-            } else if (result.status === "success" && Array.isArray(result.inventory)) {
-                inventoryData = result.inventory.map(item => ({
-                    Barcode: cleanBarcode(item.Barcode),
-                    ProductName: item["Product Name"],
-                    UnitPrice: parseFloat(item["Unit Price"]),
-                    Quantity: parseInt(item.Quantity, 10),
-                    Category: item.Category,
-                    Supplier: item.Supplier,
-                    ExpiringDate: item["Expiring Date"],
-                    CostPrice: parseFloat(item["Cost Price"] || "0"),
-                }));
-                
-            } else {
-                throw new Error(`Unexpected response format: ${JSON.stringify(result)}`);
-            }
+            inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
+                Barcode: cleanBarcode(item.Barcode),
+                ProductName: item["Product Name"],
+                UnitPrice: parseFloat(item["Unit Price"]),
+                Quantity: parseInt(item.Quantity, 10),
+                Category: item.Category,
+                Supplier: item.Supplier,
+                ExpiringDate: item["Expiring Date"],
+                CostPrice: parseFloat(item["Cost Price"] || "0"),
+            }));
         } catch (error) {
             console.error("Error loading inventory data:", error.message);
         }
     }
 
+    // Clean barcode
     function cleanBarcode(barcode) {
         return String(barcode).trim();
     }
 
+    // Update total price
     function updateTotalPrice() {
         totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
         totalPriceElement.textContent = `K${totalPrice.toFixed(2)}`;
     }
 
+    // Render cart
     function renderCart() {
         cartItems.innerHTML = "";
         cart.forEach((item, index) => {
@@ -73,23 +61,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.quantity}</td>
                 <td>K${item.price.toFixed(2)}</td>
                 <td>K${(item.quantity * item.price).toFixed(2)}</td>
-                <td class="actions">
-                    <button onclick="removeFromCart(${index})">Remove</button>
-                </td>
+                <td><button onclick="removeFromCart(${index})">Remove</button></td>
             `;
             cartItems.appendChild(row);
         });
         updateTotalPrice();
     }
 
+    // Remove item from cart
     window.removeFromCart = (index) => {
         cart.splice(index, 1);
         renderCart();
     };
 
+    // Add to cart
     async function addToCartWithQuantity(product) {
         const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
-        enteredQuantity.setAttribute("font-size:18px; color: blue");
 
         if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
             alert("Please enter a valid quantity.");
@@ -118,64 +105,45 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCart();
     }
 
-    async function updateInventoryOnServer(inventoryData) {
+    // Update inventory on server
+    async function updateInventoryOnServer(data) {
         try {
             const response = await fetch(webAppUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(inventoryData),
-                mode: 'cors',
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(data),
             });
 
             if (!response.ok) throw new Error(`Server error! Status: ${response.status}`);
             const result = await response.json();
             console.log("Server Response:", result);
         } catch (error) {
-            console.error("Error updating inventory:", error);
+            console.error("Error updating inventory:", error.message);
         }
     }
 
-    document.querySelector("#inventoryList").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const inventoryData = {
-            timestamp: new Date().toISOString(),
-            barcode: document.querySelector("#barcode").value,
-            productName: document.querySelector("#product-name").value,
-            unitPrice: document.querySelector("#unit-price").value,
-            category: document.querySelector("#category").value,
-            quantity: document.querySelector("#quantity").value,
-            supplier: document.querySelector("#supplier").value,
-            expiringDate: document.querySelector("#expiring-date").value,
-            costPrice: document.querySelector("#cost-price").value,
-        };
-
-        updateInventoryOnServer(inventoryData);
-    });
-
+    // Handle scan mode
     scanModeButton.addEventListener("click", () => {
         scannerSection.classList.remove("hidden");
         inventoryForm.classList.add("hidden");
+
         if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 50, qrbox: 500 });
-        }
-        scanner.render(
-            async (decodedText) => {
-                scanResult.innerText = `Scanned: ${decodedText}`;
-                const cleanedBarcode = cleanBarcode(decodedText);
-                const product = inventoryData.find((p) => p.Barcode === cleanedBarcode);
+            scanner = new Html5QrcodeScanner("scanner", { fps: 10, qrbox: 250 });
+            scanner.render(decodedText => {
+                scanResult.textContent = `Scanned: ${decodedText}`;
+                const product = inventoryData.find(item => item.Barcode === cleanBarcode(decodedText));
+
                 if (product) {
-                    await addToCartWithQuantity(product);
+                    addToCartWithQuantity(product);
                 } else {
                     alert("Product not found in inventory.");
                 }
                 scanner.clear();
-            },
-            (error) => {
-                scanResult.innerText = `Error: ${error}`;
-            }
-        );
+            });
+        }
     });
 
+    // Handle inventory form submission
     inventoryForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const item = {
@@ -193,11 +161,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         await updateInventoryOnServer(item);
-
         renderCart();
         inventoryForm.reset();
     });
 
+    // Calculate change
     calculateChangeButton.addEventListener("click", () => {
         const receivedMoney = parseFloat(receivedMoneyInput.value);
         if (isNaN(receivedMoney) || receivedMoney < totalPrice) {
@@ -208,55 +176,52 @@ document.addEventListener("DOMContentLoaded", () => {
         changeAmountElement.textContent = `K${change.toFixed(2)}`;
     });
 
-    checkoutButton.addEventListener("click", () => {
-        console.log("Cart at checkout:", cart); // Log cart contents
+    // Checkout
+    checkoutButton.addEventListener("click", async () => {
         const transactionDate = new Date().toISOString();
-    
-        cart.forEach(async (item) => {
+
+        for (const item of cart) {
             const transaction = {
                 action: "logTransaction",
                 data: {
                     Barcode: item.barcode,
-                    ProductName: item.name, // Ensure correct property
+                    ProductName: item.name,
                     Quantity: item.quantity,
-                    UnitPrice: item.price, // Ensure correct property
+                    UnitPrice: item.price,
                     TotalPrice: item.quantity * item.price,
                     TransactionDate: transactionDate,
                 },
             };
-    
-            console.log("Transaction being sent to backend:", transaction); // Log transaction data
             await sendTransactionData(transaction);
-        });
-    
+        }
+
         alert(`Transaction Complete. Total Price: K${totalPrice.toFixed(2)}.`);
         cart = [];
         renderCart();
-        changeAmountElement.textContent = "K0.00";
         receivedMoneyInput.value = "";
+        changeAmountElement.textContent = "K0.00";
     });
-    
-    
 
+    // Send transaction data
+    async function sendTransactionData(transaction) {
+        try {
+            const response = await fetch(webAppUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(transaction),
+            });
+
+            const result = await response.json();
+            if (result.status !== "success") {
+                console.error("Error saving transaction:", result.message);
+            } else {
+                console.log("Transaction successfully recorded.");
+            }
+        } catch (error) {
+            console.error("Error:", error.message);
+        }
+    }
+
+    // Initialize
     loadInventoryData();
 });
-
-async function sendTransactionData(transaction) {
-    try {
-        const response = await fetch(webAppUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(transaction),
-        });
-
-        const data = await response.json();
-        console.log("Server response:", data); // Log server response
-        if (data.status !== "success") {
-            console.error("Error saving transaction:", data.message);
-        } else {
-            console.log("Successfully recorded the information");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
