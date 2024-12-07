@@ -1,4 +1,4 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbxfDA9OUrniyeUMTTbB0gILr52ww2JAwJgww3_O3yZk6IpM_ylOw1A40r2u_pu59_hL/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbydlzYlDKjyR0LD5QDKLiQJfBbroTbOwMmgepWkT_i5uIijc4GeBrd39Has4bgXEzXs/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
     // DOM Elements
