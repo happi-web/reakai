@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         scanModeButton: document.getElementById("scanMode"),
         manualModeButton: document.getElementById("manualMode"),
     };
-
+scanModeButton.style.color = "red";
     // Global Variables
     let scanner;
     let cart = [];
