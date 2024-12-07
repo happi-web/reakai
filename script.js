@@ -1,4 +1,4 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbx1kpuu_0rhbEgvlK13KubXUoSqDeWNCwrqwPnGIzMEbvzKtrmy0c1Qz6CcVWxmdr51/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxfDA9OUrniyeUMTTbB0gILr52ww2JAwJgww3_O3yZk6IpM_ylOw1A40r2u_pu59_hL/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
     const scannerSection = document.getElementById("scannerSection");
