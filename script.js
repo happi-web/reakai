@@ -1,6 +1,7 @@
 const webAppUrl = "https://script.google.com/macros/s/AKfycbxfDA9OUrniyeUMTTbB0gILr52ww2JAwJgww3_O3yZk6IpM_ylOw1A40r2u_pu59_hL/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
+    // DOM Elements
     const scannerSection = document.getElementById("scannerSection");
     const inventoryForm = document.getElementById("inventoryForm");
     const cartItems = document.getElementById("cartItems");
@@ -17,11 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalPrice = 0;
     let inventoryData = [];
 
-    // Load inventory data
+    // Load Inventory Data
     async function loadInventoryData() {
         try {
             const response = await fetch(`${webAppUrl}?action=getInventory`);
-            if (!response.ok) throw new Error(`Failed to fetch inventory data. Status: ${response.status}`);
+            if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
 
             const result = await response.json();
             inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
@@ -39,24 +40,78 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Clean barcode
+    // Utility: Clean Barcode
     function cleanBarcode(barcode) {
         return String(barcode).trim();
     }
 
-    // Update total price
-    function updateTotalPrice() {
-        totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-        totalPriceElement.textContent = `K${totalPrice.toFixed(2)}`;
+    // Add Product to Cart
+    async function addProductToCart(product) {
+        const quantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
+
+        if (isNaN(quantity) || quantity <= 0) {
+            alert("Please enter a valid quantity.");
+            return;
+        }
+
+        if (quantity > product.Quantity) {
+            alert(`Not enough stock! Available: ${product.Quantity}`);
+            return;
+        }
+
+        const existingItem = cart.find(item => item.barcode === product.Barcode);
+        if (existingItem) {
+            if (existingItem.quantity + quantity > product.Quantity) {
+                alert(`Not enough stock! Available: ${product.Quantity}`);
+                return;
+            }
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({
+                barcode: product.Barcode,
+                name: product.ProductName,
+                quantity,
+                price: product.UnitPrice,
+            });
+        }
+
+        product.Quantity -= quantity;
+        await updateInventory(product);
+
+        if (product.Quantity <= 5) {
+            alert(`Low stock alert for ${product.ProductName}! Remaining: ${product.Quantity}`);
+        }
+
+        renderCart();
     }
 
-    // Render cart
+    // Update Inventory on Server
+    async function updateInventory(product) {
+        try {
+            const response = await fetch(webAppUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                    action: "processBarcode",
+                    data: { Barcode: product.Barcode, Quantity: product.Quantity },
+                }),
+            });
+
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            const result = await response.json();
+            if (result.status !== "success") alert(result.message);
+        } catch (error) {
+            console.error("Error updating inventory:", error.message);
+        }
+    }
+
+    // Render Cart
     function renderCart() {
-        cartItems.innerHTML = ""; // Clears the cart items safely
+        cartItems.innerHTML = "";
         cart.forEach((item, index) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.barcode || "N/A"}</td>
+                <td>${item.barcode}</td>
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
                 <td>K${item.price.toFixed(2)}</td>
@@ -67,158 +122,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         updateTotalPrice();
     }
-    
 
-    // Remove item from cart
+    // Update Total Price
+    function updateTotalPrice() {
+        totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+        totalPriceElement.textContent = `K${totalPrice.toFixed(2)}`;
+    }
+
+    // Remove Item from Cart
     window.removeFromCart = (index) => {
         cart.splice(index, 1);
         renderCart();
     };
 
-    // Add to cart
-    async function addToCartWithQuantity(product) {
-        const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
-
-        if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
-            alert("Please enter a valid quantity.");
-            return;
-        }
-
-        if (enteredQuantity > product.Quantity) {
-            alert(`Not enough stock! Available quantity: ${product.Quantity}`);
-            return;
-        }
-
-        cart.push({
-            barcode: product.Barcode,
-            name: product.ProductName,
-            quantity: enteredQuantity,
-            price: product.UnitPrice,
-        });
-
-        product.Quantity -= enteredQuantity;
-        await updateInventoryOnServer(product);
-
-        if (product.Quantity <= 5) {
-            alert(`Low stock alert for ${product.ProductName}! Remaining quantity: ${product.Quantity}`);
-        }
-
-        renderCart();
-    }
-
-    // Update inventory on server
-    async function updateInventoryOnServer(data) {
-        try {
-            const response = await fetch(webAppUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) throw new Error(`Server error! Status: ${response.status}`);
-            const result = await response.json();
-            console.log("Server Response:", result);
-        } catch (error) {
-            console.error("Error updating inventory:", error.message);
-        }
-    }
-    scanModeButton.addEventListener("click", () => {
-        scannerSection.classList.remove("hidden");
-        inventoryForm.classList.add("hidden");
-    
-        if (!scanner) {
-            scanner = new Html5QrcodeScanner("scanner", { fps: 20, qrbox: { width: 200, height: 200 }});
-    
-            scanner.render(
-                async (decodedText) => {
-                    scanResult.textContent = `Scanned: ${decodedText}`;
-                    const cleanedBarcode = cleanBarcode(decodedText);
-                    const product = inventoryData.find(item => item.Barcode === cleanedBarcode);
-    
-                    if (product) {
-                        await addScannedProductToCart(product); // Add scanned product to the cart
-                    } else {
-                        alert("Product not found in inventory.");
-                    }
-                },
-                (error) => {
-                    console.warn(`Scanning failed: ${error}`);
-                }
-            );
-        }
-    });
-    
-    // Add scanned product to cart with quantity adjustment
-    async function addScannedProductToCart(product) {
-        const enteredQuantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
-    
-        if (isNaN(enteredQuantity) || enteredQuantity <= 0) {
-            alert("Please enter a valid quantity.");
-            return;
-        }
-    
-        if (enteredQuantity > product.Quantity) {
-            alert(`Not enough stock! Available quantity: ${product.Quantity}`);
-            return;
-        }
-    
-        const existingCartItem = cart.find(item => item.barcode === product.Barcode);
-    
-        if (existingCartItem) {
-            // Update quantity if the product already exists in the cart
-            if (existingCartItem.quantity + enteredQuantity > product.Quantity) {
-                alert(`Not enough stock! Available quantity: ${product.Quantity}`);
-                return;
-            }
-            existingCartItem.quantity += enteredQuantity;
-        } else {
-            // Add a new item to the cart
-            cart.push({
-                barcode: product.Barcode,
-                name: product.ProductName,
-                quantity: enteredQuantity,
-                price: product.UnitPrice,
-            });
-        }
-    
-        // Update stock in the inventory
-        product.Quantity -= enteredQuantity;
-        await updateInventoryOnServer(product);
-    
-        if (product.Quantity <= 5) {
-            alert(`Low stock alert for ${product.ProductName}! Remaining quantity: ${product.Quantity}`);
-        }
-    
-        renderCart();
-    }
-    
-    // Handle inventory form submission
-    inventoryForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const item = {
-            Barcode: document.getElementById("barcode").value || "Manual Entry",
-            ProductName: document.getElementById("productName").value,
-            Quantity: parseInt(document.getElementById("quantity").value, 10),
-            UnitPrice: parseFloat(document.getElementById("price").value),
-        };
-
-        cart.push({
-            barcode: item.Barcode,
-            name: item.ProductName,
-            quantity: item.Quantity,
-            price: item.UnitPrice,
-        });
-
-        await updateInventoryOnServer(item);
-        renderCart();
-        inventoryForm.reset();
-    });
-
-    // Calculate change
+    // Calculate Change
     calculateChangeButton.addEventListener("click", () => {
         const receivedMoney = parseFloat(receivedMoneyInput.value);
         if (isNaN(receivedMoney) || receivedMoney < totalPrice) {
-            alert("The amount received must be greater than or equal to the total price.");
+            alert("Received amount must be greater than or equal to the total price.");
             return;
         }
         const change = receivedMoney - totalPrice;
@@ -241,18 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     TransactionDate: transactionDate,
                 },
             };
-            await sendTransactionData(transaction);
+            await sendTransaction(transaction);
         }
 
-        alert(`Transaction Complete. Total Price: K${totalPrice.toFixed(2)}.`);
+        alert(`Transaction complete. Total: K${totalPrice.toFixed(2)}.`);
         cart = [];
         renderCart();
         receivedMoneyInput.value = "";
         changeAmountElement.textContent = "K0.00";
     });
 
-    // Send transaction data
-    async function sendTransactionData(transaction) {
+    // Send Transaction Data
+    async function sendTransaction(transaction) {
         try {
             const response = await fetch(webAppUrl, {
                 method: "POST",
@@ -262,14 +183,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const result = await response.json();
             if (result.status !== "success") {
-                console.error("Error saving transaction:", result.message);
-            } else {
-                console.log("Transaction successfully recorded.");
+                console.error("Transaction failed:", result.message);
             }
         } catch (error) {
-            console.error("Error:", error.message);
+            console.error("Error sending transaction:", error.message);
         }
     }
+
+    // Scan Mode
+    scanModeButton.addEventListener("click", () => {
+        scannerSection.classList.remove("hidden");
+        inventoryForm.classList.add("hidden");
+
+        if (!scanner) {
+            scanner = new Html5QrcodeScanner("scanner", { fps: 20, qrbox: { width: 200, height: 200 } });
+            scanner.render(
+                async (decodedText) => {
+                    scanResult.textContent = `Scanned: ${decodedText}`;
+                    const barcode = cleanBarcode(decodedText);
+                    const product = inventoryData.find(item => item.Barcode === barcode);
+                    if (product) {
+                        await addProductToCart(product);
+                    } else {
+                        alert("Product not found.");
+                    }
+                },
+                (error) => console.warn("Scanning failed:", error)
+            );
+        }
+    });
+
+    // Handle Inventory Form Submission
+    inventoryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const item = {
+            Barcode: document.getElementById("barcode").value || "Manual Entry",
+            ProductName: document.getElementById("productName").value,
+            Quantity: parseInt(document.getElementById("quantity").value, 10),
+            UnitPrice: parseFloat(document.getElementById("price").value),
+        };
+
+        cart.push({
+            barcode: item.Barcode,
+            name: item.ProductName,
+            quantity: item.Quantity,
+            price: item.UnitPrice,
+        });
+
+        await updateInventory(item);
+        renderCart();
+        inventoryForm.reset();
+    });
 
     // Initialize
     loadInventoryData();
