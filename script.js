@@ -46,20 +46,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add Product to Cart
+    // async function addProductToCart(product) {
+    //     const quantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
+
+    //     if (isNaN(quantity) || quantity <= 0) {
+    //         alert("Please enter a valid quantity.");
+    //         return;
+    //     }
+
+    //     if (quantity > product.Quantity) {
+    //         alert(`Not enough stock! Available: ${product.Quantity}`);
+    //         return;
+    //     }
+
+    //     const existingItem = cart.find(item => item.barcode === product.Barcode);
+    //     if (existingItem) {
+    //         if (existingItem.quantity + quantity > product.Quantity) {
+    //             alert(`Not enough stock! Available: ${product.Quantity}`);
+    //             return;
+    //         }
+    //         existingItem.quantity += quantity;
+    //     } else {
+    //         cart.push({
+    //             barcode: product.Barcode,
+    //             name: product.ProductName,
+    //             quantity,
+    //             price: product.UnitPrice,
+    //         });
+    //     }
+
+    //     product.Quantity -= quantity;
+    //     await updateInventory(product);
+
+    //     if (product.Quantity <= 5) {
+    //         alert(`Low stock alert for ${product.ProductName}! Remaining: ${product.Quantity}`);
+    //     }
+
+    //     renderCart();
+    // }
     async function addProductToCart(product) {
-        const quantity = parseInt(prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`), 10);
-
-        if (isNaN(quantity) || quantity <= 0) {
-            alert("Please enter a valid quantity.");
-            return;
+        let quantity = 0;
+        
+        while (true) {
+            const input = prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`);
+            quantity = parseInt(input, 10);
+    
+            if (isNaN(quantity) || quantity <= 0) {
+                alert("Invalid quantity. Please enter a valid number.");
+                continue;
+            }
+    
+            if (quantity > product.Quantity) {
+                alert(`Not enough stock! Available: ${product.Quantity}`);
+                continue;
+            }
+    
+            break;
         }
-
-        if (quantity > product.Quantity) {
-            alert(`Not enough stock! Available: ${product.Quantity}`);
-            return;
-        }
-
+    
         const existingItem = cart.find(item => item.barcode === product.Barcode);
+    
         if (existingItem) {
             if (existingItem.quantity + quantity > product.Quantity) {
                 alert(`Not enough stock! Available: ${product.Quantity}`);
@@ -74,36 +120,67 @@ document.addEventListener("DOMContentLoaded", () => {
                 price: product.UnitPrice,
             });
         }
-
+    
         product.Quantity -= quantity;
         await updateInventory(product);
-
+    
         if (product.Quantity <= 5) {
             alert(`Low stock alert for ${product.ProductName}! Remaining: ${product.Quantity}`);
         }
-
+    
         renderCart();
     }
+    
 
     // Update Inventory on Server
+    // async function updateInventory(product) {
+    //     try {
+    //         const response = await fetch(webAppUrl, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "text/plain;charset=utf-8" },
+    //             body: JSON.stringify({
+    //                 action: "processBarcode",
+    //                 data: { Barcode: product.Barcode, Quantity: product.Quantity },
+    //             }),
+    //         });
+
+    //         if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    //         const result = await response.json();
+    //         if (result.status !== "success") alert(result.message);
+    //     } catch (error) {
+    //         console.error("Error updating inventory:", error.message);
+    //     }
+    // }
+
     async function updateInventory(product) {
+        const loader = document.getElementById("loader"); // Ensure there's a loader element in the DOM
+        loader.style.display = "block"; // Show loader
+    
         try {
             const response = await fetch(webAppUrl, {
                 method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     action: "processBarcode",
                     data: { Barcode: product.Barcode, Quantity: product.Quantity },
                 }),
             });
-
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+    
             const result = await response.json();
-            if (result.status !== "success") alert(result.message);
+            if (result.status !== "success") {
+                alert(`Error updating inventory: ${result.message}`);
+            }
         } catch (error) {
-            console.error("Error updating inventory:", error.message);
+            alert(`An error occurred while updating inventory: ${error.message}`);
+        } finally {
+            loader.style.display = "none"; // Hide loader
         }
     }
+    
 
     // Render Cart
     function renderCart() {
