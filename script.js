@@ -122,8 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
         renderCart(); // Update the UI to reflect the changes
     }
-    
-    
+
 
     // Update Inventory on Server
     async function updateInventory(product) {
