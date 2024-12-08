@@ -1,4 +1,4 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbydlzYlDKjyR0LD5QDKLiQJfBbroTbOwMmgepWkT_i5uIijc4GeBrd39Has4bgXEzXs/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbynzmADLbYPkaFzLh3FTdOBiGKMIL8kjGQ_xEYOlZBKjXInXTM-2IJ71_8C2jkbSDae/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
     // DOM Elements
@@ -213,27 +213,96 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Handle Inventory Form Submission
-    inventoryForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const item = {
-            Barcode: document.getElementById("barcode").value || "Manual Entry",
-            ProductName: document.getElementById("productName").value,
-            Quantity: parseInt(document.getElementById("quantity").value, 10),
-            UnitPrice: parseFloat(document.getElementById("price").value),
-        };
+// Handle Barcode Search
+document.getElementById("barcode").addEventListener("input", (e) => {
+    const barcode = e.target.value.trim(); // Get and clean input value
+    const product = inventoryData.find(item => item.Barcode === barcode); // Search in inventory
 
-        cart.push({
-            barcode: item.Barcode,
-            name: item.ProductName,
-            quantity: item.Quantity,
-            price: item.UnitPrice,
-        });
+    if (barcode && product) {
+        // Populate fields if product is found
+        document.getElementById("productName").value = product.ProductName;
+        document.getElementById("price").value = product.UnitPrice.toFixed(2);
+        
+        // Disable manual entry for these fields since barcode is found
+        document.getElementById("productName").disabled = true;
+        document.getElementById("price").disabled = true;
+    } else {
+        // Clear fields if no product matches
+        document.getElementById("productName").value = "";
+        document.getElementById("price").value = "";
+        
+        // Enable fields for manual entry since barcode is not found
+        document.getElementById("productName").disabled = false;
+        document.getElementById("price").disabled = false;
+    }
+});
 
-        await updateInventory(item);
-        renderCart();
-        inventoryForm.reset();
+// Handle Inventory Form Submission
+inventoryForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const barcode = document.getElementById("barcode").value.trim();
+    const productName = document.getElementById("productName").value;
+    const quantity = parseInt(document.getElementById("quantity").value, 10);
+    const price = parseFloat(document.getElementById("price").value);
+
+    if (isNaN(quantity) || quantity <= 0) {
+        alert("Please enter a valid quantity.");
+        return;
+    }
+
+    let item = {
+        Barcode: barcode || "Manual Entry",
+        ProductName: productName,
+        Quantity: quantity,
+        UnitPrice: price,
+    };
+
+    const existingProduct = inventoryData.find(p => p.Barcode === item.Barcode);
+
+    // If the barcode is not found in the inventory, and it's manually entered, allow manual entry of all fields
+    if (!existingProduct && barcode) {
+        alert("Barcode not found! Please enter all product details manually.");
+    }
+
+    // Check stock for existing product if barcode matches
+    if (existingProduct && item.Quantity > existingProduct.Quantity) {
+        alert(`Insufficient stock for ${item.ProductName}! Available: ${existingProduct.Quantity}.`);
+
+        const newQuantity = prompt(
+            `Enter a smaller quantity for ${item.ProductName} (Max: ${existingProduct.Quantity}):`
+        );
+
+        const parsedQuantity = parseInt(newQuantity, 10);
+        if (!parsedQuantity || parsedQuantity <= 0 || parsedQuantity > existingProduct.Quantity) {
+            alert("Invalid quantity. Operation canceled.");
+            inventoryForm.reset();
+            return;
+        }
+
+        item.Quantity = parsedQuantity; // Adjust to valid input
+    }
+
+    // Add product to cart
+    cart.push({
+        barcode: item.Barcode,
+        name: item.ProductName,
+        quantity: item.Quantity,
+        price: item.UnitPrice,
     });
+
+    // Update inventory
+    if (existingProduct) {
+        existingProduct.Quantity -= item.Quantity;
+        await updateInventory(existingProduct);
+    } else {
+        await updateInventory(item); // For new manual entries
+    }
+
+    renderCart();
+    inventoryForm.reset();
+});
+
 
     // Initialize
     loadInventoryData();

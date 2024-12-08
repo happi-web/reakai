@@ -23,16 +23,23 @@
     <div id="scannerSection" class="hidden">
         <div id="scanner"></div>
         <p id="scanResult">No Barcode Scanned Yet</p>
-        <h3>V6</h3>
     </div>
     <!-- Manual Entry Section -->
-    <form id="inventoryForm" class="hidden">
-        <input type="text" id="barcode" placeholder="Barcode (optional)">
-        <input type="text" id="productName" placeholder="Product Name" required>
-        <input type="number" id="quantity" placeholder="Quantity" required>
-        <input type="number" id="price" placeholder="Price (Per Unit)" required>
-        <button type="submit">Add To Inventory</button>
-    </form>
+    <form id="inventoryForm">
+        <label for="barcode">Barcode:</label>
+        <input type="text" id="barcode" placeholder="Enter or scan barcode" />
+    
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" placeholder="Enter product name" />
+    
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" placeholder="Enter quantity" required />
+    
+        <label for="price">Unit Price (K):</label>
+        <input type="text" id="price" placeholder="Enter unit price" />
+    
+        <button type="submit">Add to Inventory</button>
+    </form>    
 
     <!-- Inventory List -->
     <div id="inventoryList">
