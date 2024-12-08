@@ -122,27 +122,55 @@ document.addEventListener("DOMContentLoaded", () => {
     
         renderCart(); // Update the UI to reflect the changes
     }
-
+    
+    
 
     // Update Inventory on Server
+    // async function updateInventory(product) {
+    //     try {
+    //         const response = await fetch(webAppUrl, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "text/plain;charset=utf-8" },
+    //             body: JSON.stringify({
+    //                 action: "processBarcode",
+    //                 data: { Barcode: product.Barcode, Quantity: product.Quantity },
+    //             }),
+    //         });
+
+    //         if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    //         const result = await response.json();
+    //         if (result.status !== "success") alert(result.message);
+    //     } catch (error) {
+    //         console.error("Error updating inventory:", error.message);
+    //     }
+    // }
     async function updateInventory(product) {
         try {
             const response = await fetch(webAppUrl, {
                 method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     action: "processBarcode",
                     data: { Barcode: product.Barcode, Quantity: product.Quantity },
                 }),
             });
-
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+    
             const result = await response.json();
-            if (result.status !== "success") alert(result.message);
+            if (result.status !== "success") {
+                alert(`Error updating inventory: ${result.message}`);
+            } else {
+                console.log(`Inventory updated successfully for ${product.ProductName}`);
+            }
         } catch (error) {
-            console.error("Error updating inventory:", error.message);
+            alert(`An error occurred while updating inventory: ${error.message}`);
         }
     }
+    
+    
 
     // Render Cart
     function renderCart() {
