@@ -156,19 +156,21 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     
             if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+                throw new Error(`Server returned status: ${response.status}`);
             }
     
             const result = await response.json();
             if (result.status !== "success") {
-                alert(`Error updating inventory: ${result.message}`);
-            } else {
-                console.log(`Inventory updated successfully for ${product.ProductName}`);
+                throw new Error(`Error from server: ${result.message}`);
             }
+    
+            console.log(`Inventory updated successfully for ${product.ProductName}`);
         } catch (error) {
-            alert(`An error occurred while updating inventory: ${error.message}`);
+            console.error("Error updating inventory:", error.message);
+            alert(`Error updating inventory: ${error.message}`);
         }
     }
+    
     
     
 
