@@ -85,32 +85,23 @@ document.addEventListener("DOMContentLoaded", () => {
     //     renderCart();
     // }
     async function addProductToCart(product) {
-        let quantity = 0;
-        
-        while (true) {
-            const input = prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`);
-            quantity = parseInt(input, 10);
+        const input = prompt(`Enter quantity for ${product.ProductName} (Stock: ${product.Quantity}):`);
+        const quantity = parseInt(input, 10);
     
-            if (isNaN(quantity) || quantity <= 0) {
-                alert("Invalid quantity. Please enter a valid number.");
-                continue;
-            }
-    
-            if (quantity > product.Quantity) {
-                alert(`Not enough stock! Available: ${product.Quantity}`);
-                continue;
-            }
-    
-            break;
+        // Validate user input
+        if (isNaN(quantity) || quantity <= 0) {
+            alert("Invalid quantity. Please enter a valid number.");
+            return;
         }
     
-        const existingItem = cart.find(item => item.barcode === product.Barcode);
+        if (quantity > product.Quantity) {
+            alert(`Not enough stock! Available: ${product.Quantity}`);
+            return;
+        }
     
+        // Add to cart or update existing cart item
+        const existingItem = cart.find(item => item.barcode === product.Barcode);
         if (existingItem) {
-            if (existingItem.quantity + quantity > product.Quantity) {
-                alert(`Not enough stock! Available: ${product.Quantity}`);
-                return;
-            }
             existingItem.quantity += quantity;
         } else {
             cart.push({
@@ -121,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     
+        // Update the product's stock and send inventory update
         product.Quantity -= quantity;
         await updateInventory(product);
     
@@ -128,8 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
             alert(`Low stock alert for ${product.ProductName}! Remaining: ${product.Quantity}`);
         }
     
-        renderCart();
+        renderCart(); // Update the UI to reflect the changes
     }
+    
     
 
     // Update Inventory on Server
@@ -151,11 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     //         console.error("Error updating inventory:", error.message);
     //     }
     // }
-
     async function updateInventory(product) {
-        const loader = document.getElementById("loader"); // Ensure there's a loader element in the DOM
-        loader.style.display = "block"; // Show loader
-    
         try {
             const response = await fetch(webAppUrl, {
                 method: "POST",
@@ -173,13 +162,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
             if (result.status !== "success") {
                 alert(`Error updating inventory: ${result.message}`);
+            } else {
+                console.log(`Inventory updated successfully for ${product.ProductName}`);
             }
         } catch (error) {
             alert(`An error occurred while updating inventory: ${error.message}`);
-        } finally {
-            loader.style.display = "none"; // Hide loader
         }
     }
+    
     
 
     // Render Cart
