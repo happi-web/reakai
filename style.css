@@ -8,7 +8,7 @@
 
 /* Prevent horizontal scrolling */
 body {
-    background-color: darksalmon;
+    background-color:#A9D5A8;
     overflow-x: hidden; /* Disables horizontal scrolling */
 }
 
@@ -19,7 +19,7 @@ body {
     align-items: center;
     justify-content: center;
     max-width: 95%;
-    background-color: blanchedalmond;
+    background-color: #F8F1E5;
     margin: 40px auto;
     padding: 20px;
     border-radius: 15px;
@@ -42,36 +42,45 @@ h1 {
 
 /* Button Styling */
 button {
-    background-color: #000e5a;
-    color: rgb(224, 221, 255);
+    background-color:#2E8B57;
+    color:#F8F1E5;
     padding: 10px;
     margin: 10px;
     font-size: 20px;
     font-weight: bold;
-    border-radius: 20px;
+    border-radius: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #001c8e;
+    background-color:#F8F1E5 ;
+    color: #2E8B57;
 }
-form
+#inventoryForm
 {
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
 }
 input
 {
-    padding: 10px;
-    margin: 10px;
-    border: 2px solid rgb(94, 137, 255);
+    padding: 25px;
+    margin: 5px;
+    border: 2px solid #D72638;
     font-size: 24px;
     color: #000e5a;
-    width: 40%;
-    border-radius: 15px;
+    width: 100%;
+    border-radius: 10px;
     font-weight: bold;
 }
-
+.labelText {
+  text-align: left;
+  color: black;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 10px 5px;
+}
 /* Inventory List Section */
 #inventoryList {
     width: 100%; /* Ensure it doesn't exceed container width */
@@ -94,9 +103,9 @@ thead th {
     font-size: 18px;
     padding: 10px;
     white-space: nowrap;
-    color: rgb(233, 233, 233);
+    color:black;
     font-weight: bold;
-    background-color: rgb(87, 26, 255);
+    background-color:#A9D5A8;
 }
 
 tbody td {
@@ -115,29 +124,35 @@ h2 {
     text-transform: uppercase;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-weight: bolder;
-    color: rgb(149, 140, 252);
+    color:black;
     text-align: left;
 }
 
 h3 {
     font-size: 28px;
-    color: #7e6b00;
+    color: green;
     font-weight: bold;
     padding: 20px;
 }
 
 /* Label Styling */
-label {
-    font-size: 18px;
-    color: #010053;
-    font-weight: bold;
-    padding: 20px;
-}
 
 .version{
     padding: 6px;
     margin: 5px;
     color: gray;
+}
+
+.receive 
+{
+  padding: 15px;
+    margin: 5px;
+    border: 2px solid #D72638;
+    font-size: 14px;
+    color: #000;
+    width: 30%;
+    border-radius: 10px;
+    font-weight: bold;
 }
 /* Responsive Styles for Small Screens */
 @media (max-width: 720px) {
@@ -187,4 +202,5 @@ label {
         font-size: 14px;
         padding: 8px;
     }
-}
+    }
+    
