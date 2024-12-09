@@ -26,16 +26,15 @@
     </div>
     <!-- Manual Entry Section -->
     <form id="inventoryForm">
-        <label for="barcode">Barcode:</label>
+        <label class="labelText" for="barcode">Barcode</label>
         <input type="text" id="barcode" placeholder="Enter or scan barcode" />
-    
-        <label for="productName">Product Name:</label>
+        <label class="labelText" for="productName">Product Name</label>
         <input type="text" id="productName" placeholder="Enter product name" />
     
-        <label for="quantity">Quantity:</label>
+        <label class="labelText" for="quantity">Quantity</label>
         <input type="number" id="quantity" placeholder="Enter quantity" required />
     
-        <label for="price">Unit Price (K):</label>
+        <label class="labelText" for="price">Unit Price</label>
         <input type="text" id="price" placeholder="Enter unit price" />
     
         <button type="submit">Add to Inventory</button>
@@ -57,15 +56,15 @@
             </thead>
             <tbody id="cartItems"></tbody>
         </table>
-        <h3>Total Price: K<span id="totalPrice">0.00</span></h3>
+        <h3>Total Price: <span id="totalPrice">0.00</span></h3>
 
         <!-- Add Seller's Money and Calculate Change -->
         <div>
-            <label for="receivedMoney">Enter Seller's Money: K</label>
-            <input type="number" id="receivedMoney" placeholder="Amount Received" required>
+            <label class="labelText"  for="receivedMoney">Calculate Change</label>
+            <input class="receive" type="number" id="receivedMoney" placeholder="Amount Received" required>
             <button id="calculateChange">Calculate Change</button>
         </div>
-        <h3>Change: K<span id="changeAmount">0.00</span></h3>
+        <h3>Change: <span id="changeAmount">0.00</span></h3>
 
         <button id="checkout">Checkout</button>
         
@@ -74,4 +73,4 @@
 </div>
 <script src="script.js"></script>
 </body>
-</html>
+    </html>
