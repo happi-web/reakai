@@ -1,4 +1,4 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbzPVH_5aKbuxsD9EIapS7dJhYwv-SgX5DPzSPYdsIiSrGGTUpSgjdtqQLLFeoQBc1u8/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbz9RnYSgXLE4UW-Sn_jw9y1hv1J3mHcv3nOiEv0QOt1ZWcEooD15HPBcd5RPPx3Aveg/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
     // DOM Elements
@@ -19,11 +19,32 @@ document.addEventListener("DOMContentLoaded", () => {
     let inventoryData = [];
 
     // Load Inventory Data
+    // async function loadInventoryData() {
+    //     try {
+    //         const response = await fetch(`${webAppUrl}?action=getInventory`);
+    //         if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
+
+    //         const result = await response.json();
+    //         inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
+    //             Barcode: cleanBarcode(item.Barcode),
+    //             ProductName: item["Product Name"],
+    //             UnitPrice: parseFloat(item["Unit Price"]),
+    //             Quantity: parseInt(item.Quantity, 10),
+    //             Category: item.Category,
+    //             Supplier: item.Supplier,
+    //             ExpiringDate: item["Expiring Date"],
+    //             CostPrice: parseFloat(item["Cost Price"] || "0"),
+    //         }));
+    //     } catch (error) {
+    //         console.error("Error loading inventory data:", error.message);
+    //     }
+    // }
+
     async function loadInventoryData() {
         try {
             const response = await fetch(`${webAppUrl}?action=getInventory`);
             if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
-
+    
             const result = await response.json();
             inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
                 Barcode: cleanBarcode(item.Barcode),
@@ -39,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error loading inventory data:", error.message);
         }
     }
+    
 
     // Utility: Clean Barcode
     function cleanBarcode(barcode) {
@@ -91,29 +113,24 @@ async function updateInventory(product) {
     try {
         const response = await fetch(webAppUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
                 action: "processBarcode",
                 data: {
                     Barcode: product.Barcode,
-                    QuantityChange: -product.QuantityChange, // Negative for reduction
+                    Quantity: product.Quantity, // Send the target quantity
                 },
             }),
         });
 
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         const result = await response.json();
-        if (result.status !== "success") {
-            alert(`Error updating inventory: ${result.message}`);
-            return;
-        }
-        console.log("Inventory updated successfully.");
+        if (result.status !== "success") alert(result.message);
     } catch (error) {
         console.error("Error updating inventory:", error.message);
     }
 }
- 
-    
+
 
     // Render Cart
     function renderCart() {
@@ -190,7 +207,7 @@ async function updateInventory(product) {
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(transaction),
             });
-
+    
             const result = await response.json();
             if (result.status !== "success") {
                 console.error("Transaction failed:", result.message);
@@ -199,6 +216,7 @@ async function updateInventory(product) {
             console.error("Error sending transaction:", error.message);
         }
     }
+    
 
     // Scan Mode
     scanModeButton.addEventListener("click", () => {
@@ -232,7 +250,7 @@ document.getElementById("barcode").addEventListener("input", (e) => {
         // Populate fields if product is found
         document.getElementById("productName").value = product.ProductName;
         document.getElementById("price").value = product.UnitPrice.toFixed(2);
-        
+
         // Disable manual entry for these fields since barcode is found
         document.getElementById("productName").disabled = true;
         document.getElementById("price").disabled = true;
@@ -240,12 +258,13 @@ document.getElementById("barcode").addEventListener("input", (e) => {
         // Clear fields if no product matches
         document.getElementById("productName").value = "";
         document.getElementById("price").value = "";
-        
+
         // Enable fields for manual entry since barcode is not found
         document.getElementById("productName").disabled = false;
         document.getElementById("price").disabled = false;
     }
 });
+
 
 // Handle Inventory Form Submission
 inventoryForm.addEventListener("submit", async (e) => {
