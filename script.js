@@ -1,4 +1,4 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbzG4Zb4z1wX6Rfj2_qX9uWPP5rrf2yZc7ZrXyb1ExWbxakanPN4gIXyYwNoI0mvmves/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbzPVH_5aKbuxsD9EIapS7dJhYwv-SgX5DPzSPYdsIiSrGGTUpSgjdtqQLLFeoQBc1u8/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
     // DOM Elements
@@ -89,27 +89,30 @@ document.addEventListener("DOMContentLoaded", () => {
 // Update Inventory on Server
 async function updateInventory(product) {
     try {
-        // Only send the quantity change, not the new value
         const response = await fetch(webAppUrl, {
             method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 action: "processBarcode",
                 data: {
                     Barcode: product.Barcode,
-                    QuantityChange: -product.QuantityChange, // Negative to subtract
+                    QuantityChange: -product.QuantityChange, // Negative for reduction
                 },
             }),
         });
 
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         const result = await response.json();
-        if (result.status !== "success") alert(result.message);
+        if (result.status !== "success") {
+            alert(`Error updating inventory: ${result.message}`);
+            return;
+        }
+        console.log("Inventory updated successfully.");
     } catch (error) {
         console.error("Error updating inventory:", error.message);
     }
 }
-    
+ 
     
 
     // Render Cart
