@@ -1,3 +1,9 @@
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker registered successfully.'))
+        .catch(err => console.error('Service Worker registration failed:', err));
+}
+
 const webAppUrl = "https://script.google.com/macros/s/AKfycbz9RnYSgXLE4UW-Sn_jw9y1hv1J3mHcv3nOiEv0QOt1ZWcEooD15HPBcd5RPPx3Aveg/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,50 +24,41 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalPrice = 0;
     let inventoryData = [];
 
-    // Load Inventory Data
-    // async function loadInventoryData() {
-    //     try {
-    //         const response = await fetch(`${webAppUrl}?action=getInventory`);
-    //         if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
-
-    //         const result = await response.json();
-    //         inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
-    //             Barcode: cleanBarcode(item.Barcode),
-    //             ProductName: item["Product Name"],
-    //             UnitPrice: parseFloat(item["Unit Price"]),
-    //             Quantity: parseInt(item.Quantity, 10),
-    //             Category: item.Category,
-    //             Supplier: item.Supplier,
-    //             ExpiringDate: item["Expiring Date"],
-    //             CostPrice: parseFloat(item["Cost Price"] || "0"),
-    //         }));
-    //     } catch (error) {
-    //         console.error("Error loading inventory data:", error.message);
-    //     }
-    // }
-
     async function loadInventoryData() {
         try {
-            const response = await fetch(`${webAppUrl}?action=getInventory`);
-            if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
-    
-            const result = await response.json();
-            inventoryData = (Array.isArray(result.inventory) ? result.inventory : result).map(item => ({
-                Barcode: cleanBarcode(item.Barcode),
-                ProductName: item["Product Name"],
-                UnitPrice: parseFloat(item["Unit Price"]),
-                Quantity: parseInt(item.Quantity, 10),
-                Category: item.Category,
-                Supplier: item.Supplier,
-                ExpiringDate: item["Expiring Date"],
-                CostPrice: parseFloat(item["Cost Price"] || "0"),
-            }));
+            const isOnline = navigator.onLine; // Check network status
+            if (isOnline) {
+                const response = await fetch(`${webAppUrl}?action=getInventory`);
+                if (!response.ok) throw new Error(`Failed to fetch inventory data: ${response.status}`);
+                const result = await response.json();
+                inventoryData = result.inventory.map(item => ({
+                    Barcode: cleanBarcode(item.Barcode),
+                    ProductName: item["Product Name"],
+                    UnitPrice: parseFloat(item["Unit Price"]),
+                    Quantity: parseInt(item.Quantity, 10),
+                    // Other fields...
+                }));
+                saveToIndexedDB('inventory', inventoryData); // Save to IndexedDB
+            } else {
+                console.log("Offline. Fetching data from IndexedDB...");
+                inventoryData = await getAllFromIndexedDB('inventory');
+            }
         } catch (error) {
             console.error("Error loading inventory data:", error.message);
         }
     }
     
-
+    
+    // Helper function to clean the barcode data
+    function cleanBarcode(barcode) {
+        if (typeof barcode !== 'string') {
+            // If barcode is not a string, convert it to string (if it's a number, boolean, etc.)
+            barcode = String(barcode);
+        }
+        return barcode.trim();  // Now you can safely trim the string
+    }
+    
+    
     // Utility: Clean Barcode
     function cleanBarcode(barcode) {
         return String(barcode).trim();
@@ -111,26 +108,21 @@ document.addEventListener("DOMContentLoaded", () => {
 // Update Inventory on Server
 async function updateInventory(product) {
     try {
-        const response = await fetch(webAppUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-                action: "processBarcode",
-                data: {
-                    Barcode: product.Barcode,
-                    Quantity: product.Quantity, // Send the target quantity
-                },
-            }),
-        });
-
-        if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        const result = await response.json();
-        if (result.status !== "success") alert(result.message);
+        if (navigator.onLine) {
+            const response = await fetch(webAppUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "processBarcode", data: product }),
+            });
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        } else {
+            console.log("Offline. Saving inventory update to IndexedDB...");
+            await saveToIndexedDB('inventory', [product]); // Save locally
+        }
     } catch (error) {
         console.error("Error updating inventory:", error.message);
     }
 }
-
 
     // Render Cart
     function renderCart() {
@@ -202,20 +194,22 @@ async function updateInventory(product) {
     // Send Transaction Data
     async function sendTransaction(transaction) {
         try {
-            const response = await fetch(webAppUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(transaction),
-            });
-    
-            const result = await response.json();
-            if (result.status !== "success") {
-                console.error("Transaction failed:", result.message);
+            if (navigator.onLine) {
+                const response = await fetch(webAppUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(transaction),
+                });
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            } else {
+                console.log("Offline. Saving transaction to IndexedDB...");
+                await saveToIndexedDB('transactions', [transaction]); // Save locally
             }
         } catch (error) {
             console.error("Error sending transaction:", error.message);
         }
     }
+    
     
 
     // Scan Mode
@@ -243,27 +237,22 @@ async function updateInventory(product) {
 
 // Handle Barcode Search
 document.getElementById("barcode").addEventListener("input", (e) => {
-    const barcode = e.target.value.trim(); // Get and clean input value
-    const product = inventoryData.find(item => item.Barcode === barcode); // Search in inventory
+    const barcode = e.target.value.trim();
+    const product = inventoryData.find(item => item.Barcode === barcode);
 
-    if (barcode && product) {
-        // Populate fields if product is found
+    if (product) {
         document.getElementById("productName").value = product.ProductName;
         document.getElementById("price").value = product.UnitPrice.toFixed(2);
-
-        // Disable manual entry for these fields since barcode is found
         document.getElementById("productName").disabled = true;
         document.getElementById("price").disabled = true;
     } else {
-        // Clear fields if no product matches
         document.getElementById("productName").value = "";
         document.getElementById("price").value = "";
-
-        // Enable fields for manual entry since barcode is not found
         document.getElementById("productName").disabled = false;
         document.getElementById("price").disabled = false;
     }
 });
+
 
 
 // Handle Inventory Form Submission
