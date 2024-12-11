@@ -78,7 +78,7 @@ input
   text-align: left;
   color: black;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 14px;
   padding: 10px 5px;
 }
 /* Inventory List Section */
@@ -134,6 +134,13 @@ h3 {
     font-weight: bold;
     padding: 20px;
 }
+.navbar{
+    text-align: center;
+}
+
+.navbar img{
+    width: 50%;
+}
 
 /* Label Styling */
 
@@ -145,7 +152,7 @@ h3 {
 
 .receive 
 {
-  padding: 15px;
+  padding: 7px;
     margin: 5px;
     border: 2px solid #D72638;
     font-size: 14px;
@@ -188,7 +195,7 @@ h3 {
     }
 
     label {
-        font-size: 14px;
+        font-size: 10px;
         text-align: center;
     }
 

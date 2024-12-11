@@ -4,7 +4,8 @@ const CACHE_ASSETS = [
     '/index.html',        
     '/script.js',         
     '/styles.css',        
-    '/icon.png',          
+    '/icon.png',  
+    '/logo.png',         
 ];
 
 // Install event: Cache assets

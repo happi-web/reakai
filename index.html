@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Inventory System</title>
+    <title>Reakai POS Inventory System</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="/icon.png" type="image/x-icon">
     <!-- Include Html5Qrcode for Barcode Scanning -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1>Reakai POS Inventory System</h1>
-
+    <nav class="navbar">
+        <img src="/logo.png" alt="">
+    </nav>
     <!-- Mode Selector -->
     <div id="modeSelector">
         <button id="scanMode">Scan Barcode</button>
@@ -61,7 +63,7 @@
         <!-- Add Seller's Money and Calculate Change -->
         <div>
             <label class="labelText"  for="receivedMoney">Calculate Change</label>
-            <input class="receive" type="number" id="receivedMoney" placeholder="Amount Received" required>
+            <input class="receive" type="number" id="receivedMoney" placeholder="Amount" required>
             <button id="calculateChange">Calculate Change</button>
         </div>
         <h3>Change: <span id="changeAmount">0.00</span></h3>
